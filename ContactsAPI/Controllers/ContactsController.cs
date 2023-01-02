@@ -2,6 +2,7 @@
 using ContactsAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Net.Http.Headers;
 using System.Data;
 
@@ -22,6 +23,20 @@ namespace ContactsAPI.Controllers
         public async Task<IActionResult> GetContacts()
         {
             return Ok(await dbContext.Contacts.ToListAsync());
+        }
+
+        [HttpGet]
+        [Route("{id:guid}")]
+        public async Task<IActionResult> GetContact([FromRoute] Guid id)
+        {
+            var contact = await dbContext.Contacts.FindAsync(id);
+
+            if (contact == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(contact);
         }
 
         [HttpPost]
@@ -54,6 +69,22 @@ namespace ContactsAPI.Controllers
 
                 await dbContext.SaveChangesAsync();
 
+                return Ok(contact);
+            }
+
+            return NotFound();
+        }
+
+        [HttpDelete]
+        [Route("{id:guid}")]
+        public async Task<IActionResult> DeleteContact([FromRoute] Guid id)
+        {
+            var contact = await dbContext.Contacts.FindAsync(id);
+
+            if (contact != null)
+            {
+                dbContext.Remove(contact);
+                await dbContext.SaveChangesAsync();
                 return Ok(contact);
             }
 
